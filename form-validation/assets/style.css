@@ -16,6 +16,10 @@ body {
     margin: -20px 0 50px;
 }
 
+.container {
+    height: 80vh;
+}
+
 h1 {
     font-weight: bold;
     margin: 0;
@@ -45,6 +49,7 @@ a {
 }
 
 button {
+    margin-top: 20px;
     border-radius: 20px;
     border: 1px solid #FF4B2B;
     background-color: #FF4B2B;
@@ -55,9 +60,10 @@ button {
     letter-spacing: 1px;
     text-transform: uppercase;
     transition: transform 80ms ease-in;
+    cursor: pointer;
 }
 
-button:hover {
+button:hover:not(:disabled) {
     border: 1px solid #FF4B2B;
     background-color: #FFFF;
     color: #FF4B2B;
@@ -78,7 +84,20 @@ button:focus {
 
 button.ghost {
     background-color: transparent;
-    border-color: #FFFFFF;
+    border: 1px solid #FFFFFF;
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 12px 45px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: background-color 80ms ease-in, color 80ms ease-in;
+}
+
+button.ghost:hover {
+    background-color: #FFFFFF;
+    border-radius: #300d98;
+    color: #FF4B2B;
 }
 
 form {
@@ -94,10 +113,15 @@ form {
 
 input {
     background-color: #eee;
-    border: none;
+    border: 1px solid #ccc;
     padding: 12px 15px;
     margin: 8px 0;
     width: 100%;
+    box-sizing: border-box; 
+}
+
+input.error {
+    border-color: red; 
 }
 
 .container {

@@ -1,3 +1,24 @@
+const INPUT_VALIDATION = {
+    NAME: {
+        FORMAT: /^[a-zA-ZÀ-ỹ\s]+$/,
+        MESSAGE: "Invalid name"
+    },
+    EMAIL: {
+        FORMAT: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        MESSAGE: "Invalid email address"
+    },
+    PASSWORD: {
+        FORMAT: /^(?=.*[a-z])(?=.*[A-Z]).{8,32}$/,
+        MESSAGE: "Password must be 8-32 characters long and contain at least one uppercase and one lowercase letter"
+    },
+    EMPTY: {
+        MESSAGE: "This field cannot be empty"
+    },
+    CONFIRM_PASSWORD: {
+        MESSAGE: "Passwords do not match"
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('container');
     const signUpButton = document.getElementById('signUp');
@@ -11,24 +32,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const successPopup = document.getElementById('successPopup');
     const closePopupButton = document.getElementById('closePopup');
 
-    signUpButton.addEventListener('click', () => {
-        container.classList.add("right-panel-active");
-    });
+    signUpButton.addEventListener('click', () => container.classList.add("right-panel-active"));
+    signInButton.addEventListener('click', () => container.classList.remove("right-panel-active"));
 
-    signInButton.addEventListener('click', () => {
-        container.classList.remove("right-panel-active");
-    });
-
-    function validateName(name) {
-        return /^[a-zA-ZÀ-ỹ\s]+$/.test(name);
-    }
-
-    function validateEmail(email) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    }
-
-    function validatePassword(password) {
-        return /^(?=.*[a-z])(?=.*[A-Z]).{8,32}$/.test(password);
+    function validateInput(input, validationType) {
+        return INPUT_VALIDATION[validationType].FORMAT.test(input);
     }
 
     function showPopup() {
@@ -48,9 +56,11 @@ document.addEventListener('DOMContentLoaded', function() {
             errorElement.className = 'error-message';
             errorElement.style.color = 'red';
             errorElement.style.fontSize = '12px';
+            errorElement.style.marginBottom = '10px';
             input.parentNode.insertBefore(errorElement, input.nextSibling);
         }
         errorElement.textContent = message;
+        input.classList.add('error');
     }
 
     function hideError(input) {
@@ -58,38 +68,39 @@ document.addEventListener('DOMContentLoaded', function() {
         if (errorElement && errorElement.classList.contains('error-message')) {
             errorElement.textContent = '';
         }
+        input.classList.remove('error');
     }
 
     function validateField(input) {
         if (!input.dataset.touched) return true;
 
         if (input.value.trim() === '') {
-            showError(input, 'Trường này không được để trống');
+            showError(input, INPUT_VALIDATION.EMPTY.MESSAGE);
             return false;
         }
 
         switch (input) {
             case nameInput:
-                if (!validateName(input.value)) {
-                    showError(input, 'Tên không hợp lệ');
+                if (!validateInput(input.value, 'NAME')) {
+                    showError(input, INPUT_VALIDATION.NAME.MESSAGE);
                     return false;
                 }
                 break;
             case emailInput:
-                if (!validateEmail(input.value)) {
-                    showError(input, 'Email không hợp lệ');
+                if (!validateInput(input.value, 'EMAIL')) {
+                    showError(input, INPUT_VALIDATION.EMAIL.MESSAGE);
                     return false;
                 }
                 break;
             case passwordInput:
-                if (!validatePassword(input.value)) {
-                    showError(input, 'Mật khẩu phải có 8-32 ký tự, ít nhất 1 chữ hoa và 1 chữ thường');
+                if (!validateInput(input.value, 'PASSWORD')) {
+                    showError(input, INPUT_VALIDATION.PASSWORD.MESSAGE);
                     return false;
                 }
                 break;
             case confirmPasswordInput:
                 if (input.value !== passwordInput.value) {
-                    showError(input, 'Mật khẩu xác nhận không khớp');
+                    showError(input, INPUT_VALIDATION.CONFIRM_PASSWORD.MESSAGE);
                     return false;
                 }
                 break;
@@ -100,12 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function validateForm() {
-        const isNameValid = validateField(nameInput);
-        const isEmailValid = validateField(emailInput);
-        const isPasswordValid = validateField(passwordInput);
-        const isConfirmPasswordValid = validateField(confirmPasswordInput);
-
-        return isNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid;
+        return [nameInput, emailInput, passwordInput, confirmPasswordInput].every(validateField);
     }
 
     function updateSubmitButton() {
@@ -113,45 +119,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     [nameInput, emailInput, passwordInput, confirmPasswordInput].forEach(input => {
-        input.addEventListener('focus', function() {
-            this.dataset.touched = 'true';
-        });
-
-        input.addEventListener('input', function() {
-            validateField(this);
-            if (this === passwordInput) {
-                validateField(confirmPasswordInput);
-            }
+        input.addEventListener('focus', () => input.dataset.touched = 'true');
+        input.addEventListener('input', () => {
+            validateField(input);
+            if (input === passwordInput) validateField(confirmPasswordInput);
             updateSubmitButton();
         });
-
-        input.addEventListener('blur', function() {
-            validateField(this);
+        input.addEventListener('blur', () => {
+            validateField(input);
             updateSubmitButton();
         });
     });
 
     signUpForm.addEventListener('submit', function(e) {
         e.preventDefault();
-
-        [nameInput, emailInput, passwordInput, confirmPasswordInput].forEach(input => {
-            input.dataset.touched = 'true';
-        });
+        [nameInput, emailInput, passwordInput, confirmPasswordInput].forEach(input => input.dataset.touched = 'true');
 
         if (validateForm()) {
             showPopup();
             this.reset();
             [nameInput, emailInput, passwordInput, confirmPasswordInput].forEach(input => {
                 input.dataset.touched = 'false';
+                hideError(input);
             });
         } else {
             updateSubmitButton();
-        }
-    });
-
-    submitButton.addEventListener('click', function(e) {
-        if (this.disabled) {
-            e.preventDefault();
         }
     });
 
